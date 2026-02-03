@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Privado | 4Elements</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wellness-primary': '#418b89', // Verde Profundo [cite: 5]
+                        'wellness-accent': '#a68177',  // Arena Rosada [cite: 6]
+                        'wellness-bg': '#ece6dd',      // Beige Claro [cite: 7]
+                        'wellness-dark': '#412814',
+                    },
+                    fontFamily: {
+                        'sans': ['Montserrat', 'sans-serif'], // [cite: 10]
+                        'serif': ['Playfair Display', 'serif'], // [cite: 9]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #ece6dd; color: #412814; }
+        .hidden-content { display: none; } /* Oculta la web real al principio */
+        
+        /* Animación suave al entrar */
+        .fade-in { animation: fadeIn 0.8s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Estilos del acordeón */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: sweep .5s ease-in-out; }
+        @keyframes sweep { 0% {opacity: 0; transform: translateY(-10px)} 100% {opacity: 1; transform: translateY(0)} }
+    </style>
+</head>
+<body class="font-sans antialiased h-screen flex flex-col">
+
+    <div id="login-screen" class="fixed inset-0 z-[100] bg-wellness-bg flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-xl border-t-8 border-wellness-primary">
+            <div class="mb-8">
+                <span class="block text-2xl tracking-[0.4em] font-light text-wellness-primary">4ELEMENTS</span>
+                <span class="block text-[8px] tracking-[0.3em] font-bold text-wellness-accent uppercase mt-2">Área Privada del Paciente</span>
+            </div>
+
+            <div class="w-16 h-16 bg-wellness-bg rounded-full flex items-center justify-center mx-auto mb-6 text-wellness-accent">
+                <i class="fa-solid fa-lock text-2xl"></i>
+            </div>
+
+            <h2 class="font-serif text-2xl text-wellness-dark mb-2">Bienvenido/a</h2>
+            <p class="text-sm opacity-60 mb-8 font-light">Introduce tu código personal para acceder a tu plan nutricional.</p>
+
+            <div class="space-y-4">
+                <input type="password" id="pass-input" placeholder="Tu código de acceso" 
+                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center tracking-widest text-wellness-primary focus:outline-none focus:border-wellness-primary transition-colors">
+                
+                <button onclick="checkPassword()" 
+                    class="w-full bg-wellness-primary text-white py-4 rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-lg hover:bg-[#367270] transition-all transform active:scale-95">
+                    Entrar al Espacio
+                </button>
+                <p id="error-msg" class="text-red-400 text-xs font-bold hidden mt-2">Código incorrecto</p>
+            </div>
+            
+            <p class="mt-8 text-[10px] text-gray-400">Protegido por 4Elements Medical Framework</p>
+        </div>
+    </div>
+
+    <div id="app-content" class="hidden-content min-h-screen">
+        
+        <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-wellness-primary/10">
+            <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="text-center md:text-left">
+                    <span class="block text-lg tracking-[0.3em] font-light text-wellness-primary">4ELEMENTS</span>
+                    <span class="block text-[7px] tracking-[0.2em] font-bold text-wellness-accent uppercase">Nutritional Care</span>
+                </div>
+                <button onclick="location.reload()" class="text-xs font-bold text-gray-400 hover:text-wellness-primary uppercase tracking-widest transition-colors">
+                    <i class="fa-solid fa-power-off"></i> Salir
+                </button>
+            </div>
+        </nav>
+
+        <main class="max-w-3xl mx-auto px-6 py-10 space-y-12 fade-in">
+            <header class="text-center space-y-4">
+                <p class="text-wellness-accent font-bold text-xs uppercase tracking-[0.2em]">Tu Espacio Personal</p>
+                <h1 class="text-4xl md:text-5xl font-serif text-wellness-primary">Hola, Ana</h1>
+                <p class="text-sm md:text-base font-light opacity-80 max-w-xl mx-auto leading-relaxed">
+                    Estás en la fase de <span class="font-semibold">Adaptación Metabólica</span>.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-2xl border-b-4 border-wellness-primary text-center shadow-sm">
+                    <div class="text-2xl mb-2">⛰️</div>
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-wellness-primary">Plan Tierra</h3>
+                </div>
+                <div class="bg-white/50 p-4 rounded-2xl text-center opacity-60">
+                    <div class="text-2xl mb-2">💧</div>
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest">Hidratación</h3>
+                </div>
+                <div class="bg-white/50 p-4 rounded-2xl text-center opacity-60">
+                    <div class="text-2xl mb-2">🔥</div>
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest">Energía</h3>
+                </div>
+                <div class="bg-white/50 p-4 rounded-2xl text-center opacity-60">
+                    <div class="text-2xl mb-2">🌬️</div>
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest">Mindful</h3>
+                </div>
+            </div>
+
+            <section class="space-y-6">
+                <div class="bg-white rounded-[1.5rem] shadow-sm overflow-hidden border border-wellness-primary/10">
+                    <div class="bg-wellness-primary/5 p-6 border-b border-wellness-primary/10 flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-wellness-accent bg-white px-3 py-1 rounded-full">Activo</span>
+                            <h3 class="font-serif text-xl text-wellness-primary mt-2">Semana 3: Detoxificación</h3>
+                        </div>
+                        <i class="fa-solid fa-seedling text-wellness-primary text-2xl"></i>
+                    </div>
+                    
+                    <div class="p-6 sm:p-8 space-y-6">
+                        <p class="text-sm opacity-80 italic border-l-2 border-wellness-accent pl-4">
+                            Esta semana nos enfocamos en reducir la carga inflamatoria[cite: 13].
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button class="flex items-center justify-center gap-3 bg-wellness-bg hover:bg-wellness-primary hover:text-white transition-all py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest text-wellness-dark">
+                                <i class="fa-regular fa-file-pdf"></i> Ver Menú PDF
+                            </button>
+                            <button class="flex items-center justify-center gap-3 bg-wellness-bg hover:bg-wellness-accent hover:text-white transition-all py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest text-wellness-dark">
+                                <i class="fa-brands fa-whatsapp"></i> Dudas Nutrición
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        function checkPassword() {
+            var input = document.getElementById("pass-input").value;
+            // ---------------------------------------------------------
+            // CAMBIA AQUÍ LA CONTRASEÑA (Donde dice 'ANA2024')
+            var passwordReal = "DAVID2026"; 
+            // ---------------------------------------------------------
+            
+            var errorMsg = document.getElementById("error-msg");
+            var loginScreen = document.getElementById("login-screen");
+            var appContent = document.getElementById("app-content");
+
+            // Convertimos a mayúsculas para evitar errores
+            if (input.toUpperCase() === passwordReal) {
+                // Si es correcto:
+                loginScreen.style.opacity = '0'; // Desvanecer
+                setTimeout(function() {
+                    loginScreen.style.display = 'none'; // Quitar pantalla login
+                    appContent.style.display = 'block'; // Mostrar web
+                }, 500);
+            } else {
+                // Si es incorrecto:
+                errorMsg.classList.remove("hidden");
+                // Pequeña vibración visual
+                document.getElementById("pass-input").classList.add("border-red-400");
+            }
+        }
+
+        // Permitir pulsar "Enter" para entrar
+        document.getElementById("pass-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                checkPassword();
+            }
+        });
+    </script>
+</body>
+</html>
