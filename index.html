@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Privado | 4Elements</title>
+    <title>Mi Plan | 4Elements</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -13,14 +14,14 @@
             theme: {
                 extend: {
                     colors: {
-                        'wellness-primary': '#418b89', // Verde Profundo [cite: 5]
-                        'wellness-accent': '#a68177',  // Arena Rosada [cite: 6]
-                        'wellness-bg': '#ece6dd',      // Beige Claro [cite: 7]
+                        'wellness-primary': '#418b89', 
+                        'wellness-accent': '#a68177',  
+                        'wellness-bg': '#ece6dd',      
                         'wellness-dark': '#412814',
                     },
                     fontFamily: {
-                        'sans': ['Montserrat', 'sans-serif'], // [cite: 10]
-                        'serif': ['Playfair Display', 'serif'], // [cite: 9]
+                        'sans': ['Montserrat', 'sans-serif'], 
+                        'serif': ['Playfair Display', 'serif'], 
                     }
                 }
             }
@@ -28,17 +29,13 @@
     </script>
     <style>
         body { background-color: #ece6dd; color: #412814; }
-        .hidden-content { display: none; } /* Oculta la web real al principio */
-        
-        /* Animación suave al entrar */
+        .loader { border-top-color: #418b89; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden-content { display: none; }
         .fade-in { animation: fadeIn 0.8s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Estilos del acordeón */
-        details > summary { list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-        details[open] summary ~ * { animation: sweep .5s ease-in-out; }
-        @keyframes sweep { 0% {opacity: 0; transform: translateY(-10px)} 100% {opacity: 1; transform: translateY(0)} }
+        .product-card { transition: all 0.3s ease; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(65, 139, 137, 0.15); }
     </style>
 </head>
 <body class="font-sans antialiased h-screen flex flex-col">
@@ -47,136 +44,207 @@
         <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-xl border-t-8 border-wellness-primary">
             <div class="mb-8">
                 <span class="block text-2xl tracking-[0.4em] font-light text-wellness-primary">4ELEMENTS</span>
-                <span class="block text-[8px] tracking-[0.3em] font-bold text-wellness-accent uppercase mt-2">Área Privada del Paciente</span>
+                <span class="block text-[8px] tracking-[0.3em] font-bold text-wellness-accent uppercase mt-2">Área Paciente</span>
             </div>
-
-            <div class="w-16 h-16 bg-wellness-bg rounded-full flex items-center justify-center mx-auto mb-6 text-wellness-accent">
-                <i class="fa-solid fa-lock text-2xl"></i>
-            </div>
-
-            <h2 class="font-serif text-2xl text-wellness-dark mb-2">Bienvenido/a</h2>
-            <p class="text-sm opacity-60 mb-8 font-light">Introduce tu código personal para acceder a tu plan nutricional.</p>
-
-            <div class="space-y-4">
-                <input type="password" id="pass-input" placeholder="Tu código de acceso" 
+            <p class="text-sm opacity-60 mb-8 font-light">Introduce tu código personal.</p>
+            <div class="space-y-4 relative">
+                <input type="password" id="pass-input" placeholder="Tu código..." 
                     class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center tracking-widest text-wellness-primary focus:outline-none focus:border-wellness-primary transition-colors">
-                
-                <button onclick="checkPassword()" 
-                    class="w-full bg-wellness-primary text-white py-4 rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-lg hover:bg-[#367270] transition-all transform active:scale-95">
-                    Entrar al Espacio
+                <button onclick="verificarCodigo()" id="btn-login"
+                    class="w-full bg-wellness-primary text-white py-4 rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-lg hover:bg-[#367270] transition-all">
+                    ENTRAR
                 </button>
-                <p id="error-msg" class="text-red-400 text-xs font-bold hidden mt-2">Código incorrecto</p>
+                <div id="loading" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
+                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
+                </div>
+                <p id="error-msg" class="text-red-400 text-xs font-bold hidden mt-2">Código no encontrado.</p>
             </div>
-            
-            <p class="mt-8 text-[10px] text-gray-400">Protegido por 4Elements Medical Framework</p>
         </div>
     </div>
 
-    <div id="app-content" class="hidden-content min-h-screen">
+    <div id="app-content" class="hidden-content min-h-screen pb-20">
         
         <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-wellness-primary/10">
             <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
                 <div class="text-center md:text-left">
                     <span class="block text-lg tracking-[0.3em] font-light text-wellness-primary">4ELEMENTS</span>
-                    <span class="block text-[7px] tracking-[0.2em] font-bold text-wellness-accent uppercase">Nutritional Care</span>
                 </div>
-                <button onclick="location.reload()" class="text-xs font-bold text-gray-400 hover:text-wellness-primary uppercase tracking-widest transition-colors">
+                <button onclick="location.reload()" class="text-xs font-bold text-gray-400 hover:text-wellness-primary uppercase tracking-widest">
                     <i class="fa-solid fa-power-off"></i> Salir
                 </button>
             </div>
         </nav>
 
-        <main class="max-w-3xl mx-auto px-6 py-10 space-y-12 fade-in">
-            <header class="text-center space-y-4">
-                <p class="text-wellness-accent font-bold text-xs uppercase tracking-[0.2em]">Tu Espacio Personal</p>
-                <h1 class="text-4xl md:text-5xl font-serif text-wellness-primary">Hola, Ana</h1>
-                <p class="text-sm md:text-base font-light opacity-80 max-w-xl mx-auto leading-relaxed">
-                    Estás en la fase de <span class="font-semibold">Adaptación Metabólica</span>.
-                </p>
-            </header>
+        <main class="max-w-3xl mx-auto px-6 py-10 space-y-16 fade-in">
+            
+            <section class="space-y-6">
+                <header class="text-center space-y-2">
+                    <p class="text-wellness-accent font-bold text-xs uppercase tracking-[0.2em]">Tu Evolución</p>
+                    <h1 class="text-3xl md:text-4xl font-serif text-wellness-primary">Hola, <span id="user-name">...</span></h1>
+                </header>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-2xl border-b-4 border-wellness-primary text-center shadow-sm">
-                    <div class="text-2xl mb-2">⛰️</div>
-                    <h3 class="text-[10px] font-bold uppercase tracking-widest text-wellness-primary">Plan Tierra</h3>
+                <div class="bg-white rounded-[2rem] shadow-lg overflow-hidden border border-wellness-primary/20 relative">
+                    <div class="absolute top-4 right-4 bg-wellness-accent text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
+                        Activo
+                    </div>
+                    <div class="p-8 text-center">
+                        <div class="w-14 h-14 bg-wellness-bg rounded-full flex items-center justify-center mx-auto text-wellness-primary text-xl mb-4">
+                            <i class="fa-solid fa-file-medical"></i>
+                        </div>
+                        <h2 class="font-serif text-2xl text-wellness-dark mb-1" id="active-title">...</h2>
+                        <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-6" id="active-date">...</p>
+                        
+                        <a id="active-pdf" href="#" target="_blank" class="w-full block bg-wellness-primary hover:bg-[#367270] text-white py-4 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg transition-all">
+                            <i class="fa-regular fa-file-pdf mr-2"></i> Ver Mi Plan Nutricional
+                        </a>
+                    </div>
                 </div>
-                <div class="bg-white/50 p-4 rounded-2xl text-center opacity-60">
-                    <div class="text-2xl mb-2">💧</div>
-                    <h3 class="text-[10px] font-bold uppercase tracking-widest">Hidratación</h3>
-                </div>
-                <div class="bg-white/50 p-4 rounded-2xl text-center opacity-60">
-                    <div class="text-2xl mb-2">🔥</div>
-                    <h3 class="text-[10px] font-bold uppercase tracking-widest">Energía</h3>
-                </div>
-                <div class="bg-white/50 p-4 rounded-2xl text-center opacity-60">
-                    <div class="text-2xl mb-2">🌬️</div>
-                    <h3 class="text-[10px] font-bold uppercase tracking-widest">Mindful</h3>
-                </div>
-            </div>
+            </section>
 
             <section class="space-y-6">
-                <div class="bg-white rounded-[1.5rem] shadow-sm overflow-hidden border border-wellness-primary/10">
-                    <div class="bg-wellness-primary/5 p-6 border-b border-wellness-primary/10 flex justify-between items-center">
-                        <div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-wellness-accent bg-white px-3 py-1 rounded-full">Activo</span>
-                            <h3 class="font-serif text-xl text-wellness-primary mt-2">Semana 3: Detoxificación</h3>
-                        </div>
-                        <i class="fa-solid fa-seedling text-wellness-primary text-2xl"></i>
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-wellness-accent/10 flex items-center justify-center text-wellness-accent">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl text-wellness-dark">Tus Reglas de Oro</h3>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-[1.5rem] border-l-4 border-wellness-primary shadow-sm">
+                        <h4 class="font-bold text-wellness-primary text-xs uppercase tracking-widest mb-4">Tu Base (Sí)</h4>
+                        <ul class="space-y-3 text-sm opacity-80">
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-wellness-primary"></i> <span><strong>Proteínas ilimitadas:</strong> Carnes, pescado, huevo, sepia, pulpo.</span></li>
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-wellness-primary"></i> <span><strong>Guarnición:</strong> 1/4 del plato (ensalada, verdura, setas).</span></li>
+                            <li class="flex gap-3"><i class="fa-solid fa-check text-wellness-primary"></i> <span><strong>Cocción:</strong> Plancha, vapor, horno (sin rebozados).</span></li>
+                        </ul>
                     </div>
                     
-                    <div class="p-6 sm:p-8 space-y-6">
-                        <p class="text-sm opacity-80 italic border-l-2 border-wellness-accent pl-4">
-                            Esta semana nos enfocamos en reducir la carga inflamatoria[cite: 13].
-                        </p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button class="flex items-center justify-center gap-3 bg-wellness-bg hover:bg-wellness-primary hover:text-white transition-all py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest text-wellness-dark">
-                                <i class="fa-regular fa-file-pdf"></i> Ver Menú PDF
-                            </button>
-                            <button class="flex items-center justify-center gap-3 bg-wellness-bg hover:bg-wellness-accent hover:text-white transition-all py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest text-wellness-dark">
-                                <i class="fa-brands fa-whatsapp"></i> Dudas Nutrición
-                            </button>
-                        </div>
+                    <div class="bg-white p-6 rounded-[1.5rem] border-l-4 border-wellness-accent shadow-sm">
+                        <h4 class="font-bold text-wellness-accent text-xs uppercase tracking-widest mb-4">A Evitar (No)</h4>
+                        <ul class="space-y-3 text-sm opacity-80">
+                            <li class="flex gap-3"><i class="fa-solid fa-xmark text-wellness-accent"></i> <span>Azúcar, bollería y pastelería.</span></li>
+                            <li class="flex gap-3"><i class="fa-solid fa-xmark text-wellness-accent"></i> <span>Refrescos (sí a sacarina/light).</span></li>
+                            <li class="flex gap-3"><i class="fa-solid fa-xmark text-wellness-accent"></i> <span>Alcohol.</span></li>
+                            <li class="flex gap-3"><i class="fa-solid fa-circle-exclamation text-wellness-accent"></i> <span><strong>Fruta:</strong> Solo 1 ración al día.</span></li>
+                        </ul>
                     </div>
                 </div>
-            </details>
+            </section>
+
+            <section class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-wellness-primary/10 flex items-center justify-center text-wellness-primary">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                        </div>
+                        <h3 class="font-serif text-2xl text-wellness-dark">Farmacia 4 Elements</h3>
+                    </div>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div class="product-card bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-serif text-lg text-wellness-dark mb-2">Método PronoKal®</h4>
+                            <p class="text-xs text-gray-500 mb-4">Tratamiento médico bajo supervisión. Reposición de productos.</p>
+                        </div>
+                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, me gustaría recibir información para iniciar o reponer productos del Método PronoKal." target="_blank" 
+                           class="w-full py-3 rounded-full border border-wellness-primary text-wellness-primary text-[10px] font-bold uppercase tracking-widest hover:bg-wellness-primary hover:text-white transition-colors text-center block">
+                           Contactar Doctora
+                        </a>
+                    </div>
+
+                    <div class="product-card bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-serif text-lg text-wellness-dark mb-2">Suplementación</h4>
+                            <p class="text-xs text-gray-500 mb-4">Vitaminas, Omega 3 y Drenantes específicos para tu plan.</p>
+                        </div>
+                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, necesito reponer mi pauta de micronutrición / suplementos." target="_blank" 
+                           class="w-full py-3 rounded-full border border-wellness-primary text-wellness-primary text-[10px] font-bold uppercase tracking-widest hover:bg-wellness-primary hover:text-white transition-colors text-center block">
+                           Pedir Reposición
+                        </a>
+                    </div>
+                    
+                    <div class="product-card bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 sm:col-span-2 flex flex-col sm:flex-row items-center gap-6">
+                        <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-400 shrink-0">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <div class="flex-1 text-center sm:text-left">
+                            <h4 class="font-serif text-lg text-wellness-dark">Stock en Clínica</h4>
+                            <p class="text-xs text-gray-500 mt-1">Consulta los snacks y batidos disponibles para recogida inmediata.</p>
+                        </div>
+                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, ¿qué snacks proteicos tenéis disponibles actualmente en stock?" target="_blank" 
+                           class="px-6 py-3 rounded-full bg-wellness-accent text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#8f6d65] transition-colors shadow-lg">
+                           Consultar Stock
+                        </a>
+                    </div>
+                </div>
             </section>
 
         </main>
     </div>
 
     <script>
-        function checkPassword() {
-            var input = document.getElementById("pass-input").value;
-            // ---------------------------------------------------------
-            // CAMBIA AQUÍ LA CONTRASEÑA (Donde dice 'ANA2024')
-            var passwordReal = "DAVID2026"; 
-            // ---------------------------------------------------------
-            
-            var errorMsg = document.getElementById("error-msg");
-            var loginScreen = document.getElementById("login-screen");
-            var appContent = document.getElementById("app-content");
+        // =================================================================
+        // PEGA AQUÍ TU ENLACE CSV DE GOOGLE SHEETS
+        // =================================================================
+        const URL_EXCEL = https://docs.google.com/spreadsheets/d/e/2PACX-1vTtDe-3Hsg6FSo7SewPSgDvH5DpCOf9TF6rC4eisgrBoopjbLxSYLsX-lbWuAtlzTtadxzfsO-uic3k/pub?output=csv;
+        // =================================================================
 
-            // Convertimos a mayúsculas para evitar errores
-            if (input.toUpperCase() === passwordReal) {
-                // Si es correcto:
-                loginScreen.style.opacity = '0'; // Desvanecer
-                setTimeout(function() {
-                    loginScreen.style.display = 'none'; // Quitar pantalla login
-                    appContent.style.display = 'block'; // Mostrar web
-                }, 500);
-            } else {
-                // Si es incorrecto:
-                errorMsg.classList.remove("hidden");
-                // Pequeña vibración visual
-                document.getElementById("pass-input").classList.add("border-red-400");
-            }
+        function verificarCodigo() {
+            const inputCode = document.getElementById('pass-input').value.trim().toUpperCase();
+            const btn = document.getElementById('btn-login');
+            const loading = document.getElementById('loading');
+            const errorMsg = document.getElementById('error-msg');
+
+            btn.classList.add('opacity-50', 'pointer-events-none');
+            loading.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
+
+            Papa.parse(URL_EXCEL, {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    const datos = results.data;
+                    // Buscamos todas las coincidencias
+                    const historialPaciente = datos.filter(row => 
+                        row.CODIGO && row.CODIGO.trim().toUpperCase() === inputCode
+                    );
+
+                    if (historialPaciente.length > 0) {
+                        // Cogemos SIEMPRE la última fila que hayas añadido (la más nueva)
+                        const ultimoPlan = historialPaciente[historialPaciente.length - 1];
+                        renderizarPaciente(ultimoPlan);
+                    } else {
+                        loading.classList.add('hidden');
+                        btn.classList.remove('opacity-50', 'pointer-events-none');
+                        errorMsg.classList.remove('hidden');
+                    }
+                },
+                error: function() {
+                    loading.classList.add('hidden');
+                    errorMsg.innerText = "Error de conexión";
+                    errorMsg.classList.remove('hidden');
+                }
+            });
         }
 
-        // Permitir pulsar "Enter" para entrar
-        document.getElementById("pass-input").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                checkPassword();
-            }
+        function renderizarPaciente(data) {
+            // Rellenar datos
+            document.getElementById('user-name').innerText = data.NOMBRE;
+            document.getElementById('active-title').innerText = data.TITULO;
+            document.getElementById('active-date').innerText = data.FECHA;
+            document.getElementById('active-pdf').href = data.PDF;
+
+            // Abrir puerta
+            document.getElementById('login-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+            }, 500);
+        }
+
+        document.getElementById("pass-input").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") verificarCodigo();
         });
     </script>
 </body>
