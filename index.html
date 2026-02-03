@@ -1,194 +1,317 @@
 <!DOCTYPE html>
-<html lang="es">
+<html class="light" lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Plan | 4Elements</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>4Elements - Acceso Área Paciente</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
-    <script>
+    <script id="tailwind-config">
         tailwind.config = {
+            darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        'wellness-primary': '#418b89', 
-                        'wellness-accent': '#a68177',  
-                        'wellness-bg': '#ece6dd',      
-                        'wellness-dark': '#412814',
+                        "primary": "#418b88",
+                        "gold": "#b09e80", 
+                        "background-light": "#f9f7f2", 
+                        "background-dark": "#151d1c",
+                        "accent": "#a68177",
+                        "text-brand": "#412814",
                     },
                     fontFamily: {
-                        'sans': ['Montserrat', 'sans-serif'], 
-                        'serif': ['Playfair Display', 'serif'], 
-                    }
-                }
-            }
+                        "display": ["Manrope", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "body": ["Montserrat", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
         }
     </script>
     <style>
-        body { background-color: #ece6dd; color: #412814; }
-        .loader { border-top-color: #418b89; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        body { font-family: 'Manrope', sans-serif; }
+        .letter-spacing-widest { letter-spacing: 0.4em; }
+        .code-input { letter-spacing: 0.2em; text-align: center; font-weight: bold; text-transform: uppercase; }
+        
+        /* Utilidades para ocultar/mostrar */
+        .hidden-content { display: none !important; }
+        .fade-in { animation: fadeIn 1s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Spinner de carga */
+        .loader { border-top-color: #418b88; -webkit-animation: spinner 1s linear infinite; animation: spinner 1s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden-content { display: none; }
-        .fade-in { animation: fadeIn 0.8s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .product-card { transition: all 0.3s ease; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(65, 139, 137, 0.15); }
     </style>
 </head>
-<body class="font-sans antialiased h-screen flex flex-col">
 
-    <div id="login-screen" class="fixed inset-0 z-[100] bg-wellness-bg flex flex-col items-center justify-center p-6 text-center">
-        <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-xl border-t-8 border-wellness-primary">
-            <div class="mb-8">
-                <span class="block text-2xl tracking-[0.4em] font-light text-wellness-primary">4ELEMENTS</span>
-                <span class="block text-[8px] tracking-[0.3em] font-bold text-wellness-accent uppercase mt-2">Área Paciente</span>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
+
+    <div id="login-screen" class="fixed inset-0 z-[100] bg-background-light dark:bg-background-dark flex flex-col overflow-y-auto">
+        
+        <header class="w-full px-8 py-6 flex justify-between items-center">
+            <div class="flex items-center gap-2 text-primary">
+                <span class="text-xs md:text-sm font-bold tracking-[0.2em] uppercase text-[#6d7e7d]">4Elements Wellness Medical Center</span>
             </div>
-            <p class="text-sm opacity-60 mb-8 font-light">Introduce tu código personal.</p>
-            <div class="space-y-4 relative">
-                <input type="password" id="pass-input" placeholder="Tu código..." 
-                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center tracking-widest text-wellness-primary focus:outline-none focus:border-wellness-primary transition-colors">
-                <button onclick="verificarCodigo()" id="btn-login"
-                    class="w-full bg-wellness-primary text-white py-4 rounded-xl font-bold text-xs uppercase tracking-[0.2em] shadow-lg hover:bg-[#367270] transition-all">
-                    ENTRAR
-                </button>
-                <div id="loading" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
-                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
+            <div class="hidden md:flex items-center gap-4 text-[#6d7e7d] text-sm">
+                <span class="material-symbols-outlined text-lg">shield_with_heart</span>
+                <span>Acceso Seguro</span>
+            </div>
+        </header>
+
+        <main class="flex-1 flex items-center justify-center p-4">
+            <div class="w-full max-w-[500px]">
+                <div class="bg-white dark:bg-[#1c2625] rounded-xl shadow-2xl overflow-hidden border-t-[8px] border-primary transition-all duration-300 relative">
+                    
+                    <div class="px-8 pt-12 pb-10 flex flex-col items-center">
+                        <div class="flex flex-col items-center mb-8">
+                            <div class="grid grid-cols-2 gap-0.5 mb-3 opacity-80 rotate-45">
+                                <div class="w-3 h-3 border border-[#b09e80]"></div>
+                                <div class="w-3 h-3 border border-[#b09e80]"></div>
+                                <div class="w-3 h-3 border border-[#b09e80]"></div>
+                                <div class="w-3 h-3 border border-[#b09e80]"></div>
+                            </div>
+                            <h1 class="text-[#131616] dark:text-white text-2xl font-light letter-spacing-widest uppercase text-center">
+                                4 ELEMENTS
+                            </h1>
+                            <span class="text-[10px] tracking-[0.3em] uppercase text-[#b09e80] mt-1">Wellness Medical Center</span>
+                        </div>
+                        
+                        <div class="h-[1px] w-12 bg-primary/30 mb-8"></div>
+                        
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-8">
+                            <span class="material-symbols-outlined text-sm">person_pin</span>
+                            ÁREA DEL PACIENTE
+                        </div>
+
+                        <div class="text-center mb-10">
+                            <h2 class="text-[#131616] dark:text-gray-200 text-xl font-bold mb-2 font-serif tracking-wide">Bienvenido/a</h2>
+                            <p class="text-[#6d7e7d] text-sm leading-relaxed max-w-[320px] mx-auto">
+                                Por favor, introduce tu código de acceso exclusivo para consultar tu plan.
+                            </p>
+                        </div>
+
+                        <div class="w-full space-y-6">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[#131616] dark:text-gray-300 text-xs font-bold uppercase tracking-widest ml-4">
+                                    CÓDIGO PERSONAL
+                                </label>
+                                <div class="relative">
+                                    <input id="pass-input" class="code-input w-full h-16 rounded-full border border-[#dee3e2] dark:border-gray-700 bg-white dark:bg-gray-800 text-xl text-[#131616] dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-300 dark:placeholder:text-gray-600" placeholder="••••••" type="password"/>
+                                    <div class="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300">
+                                        <span class="material-symbols-outlined">lock</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 relative">
+                                <button id="btn-login" onclick="verificarCodigo()" class="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-full font-bold text-base tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group transition-all">
+                                    ENTRAR
+                                    <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </button>
+                                
+                                <div id="loading" class="hidden absolute inset-0 bg-white/80 dark:bg-black/50 flex items-center justify-center rounded-full z-10">
+                                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
+                                </div>
+                            </div>
+                            
+                            <p id="error-msg" class="text-red-500 text-xs font-bold text-center hidden animate-pulse">
+                                Código incorrecto. Verifícalo e intenta de nuevo.
+                            </p>
+                        </div>
+
+                        <div class="mt-8">
+                            <a href="https://wa.me/34674201432?text=Hola, he olvidado mi código de acceso al área de paciente." target="_blank" class="text-[#6d7e7d] hover:text-primary text-sm font-medium transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-base">help</span>
+                                ¿Has olvidado tu código?
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-black/20 px-8 py-4 border-t border-gray-100 dark:border-gray-800">
+                        <div class="flex items-center justify-center gap-3 text-[11px] text-[#6d7e7d] uppercase tracking-widest font-semibold text-center">
+                            <span class="material-symbols-outlined text-sm text-primary">verified_user</span>
+                            <span>ENTORNO SEGURO Y ENCRIPTADO</span>
+                        </div>
+                    </div>
                 </div>
-                <p id="error-msg" class="text-red-400 text-xs font-bold hidden mt-2">Código no encontrado.</p>
+
+                <footer class="mt-12 flex flex-col items-center gap-4 px-4 text-center pb-8">
+                    <p class="text-[#6d7e7d] text-xs font-medium max-w-sm leading-relaxed">
+                        Tu privacidad es nuestra prioridad. Este sistema utiliza protocolos avanzados de protección de datos médicos.
+                    </p>
+                </footer>
             </div>
-        </div>
+        </main>
+        
+        <div class="fixed top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[100px] -z-10"></div>
+        <div class="fixed bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#b09e80]/10 rounded-full blur-[80px] -z-10"></div>
     </div>
 
-    <div id="app-content" class="hidden-content min-h-screen pb-20">
+    <div id="app-content" class="hidden-content flex flex-col min-h-screen bg-[#ece6dd]">
         
-        <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-wellness-primary/10">
-            <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="text-center md:text-left">
-                    <span class="block text-lg tracking-[0.3em] font-light text-wellness-primary">4ELEMENTS</span>
-                </div>
-                <button onclick="location.reload()" class="text-xs font-bold text-gray-400 hover:text-wellness-primary uppercase tracking-widest">
-                    <i class="fa-solid fa-power-off"></i> Salir
-                </button>
-            </div>
-        </nav>
-
-        <main class="max-w-3xl mx-auto px-6 py-10 space-y-16 fade-in">
-            
-            <section class="space-y-6">
-                <header class="text-center space-y-2">
-                    <p class="text-wellness-accent font-bold text-xs uppercase tracking-[0.2em]">Tu Evolución</p>
-                    <h1 class="text-3xl md:text-4xl font-serif text-wellness-primary">Hola, <span id="user-name">...</span></h1>
-                </header>
-
-                <div class="bg-white rounded-[2rem] shadow-lg overflow-hidden border border-wellness-primary/20 relative">
-                    <div class="absolute top-4 right-4 bg-wellness-accent text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
-                        Activo
+        <header class="sticky top-0 z-50 w-full border-b border-primary/10 bg-white/90 backdrop-blur-md px-6 py-4">
+            <div class="mx-auto max-w-5xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="text-primary">
+                       <span class="material-symbols-outlined text-3xl">spa</span>
                     </div>
-                    <div class="p-8 text-center">
-                        <div class="w-14 h-14 bg-wellness-bg rounded-full flex items-center justify-center mx-auto text-wellness-primary text-xl mb-4">
-                            <i class="fa-solid fa-file-medical"></i>
-                        </div>
-                        <h2 class="font-serif text-2xl text-wellness-dark mb-1" id="active-title">...</h2>
-                        <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-6" id="active-date">...</p>
-                        
-                        <a id="active-pdf" href="#" target="_blank" class="w-full block bg-wellness-primary hover:bg-[#367270] text-white py-4 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg transition-all">
-                            <i class="fa-regular fa-file-pdf mr-2"></i> Ver Mi Plan Nutricional
-                        </a>
+                    <div>
+                        <h2 class="text-primary font-serif text-lg leading-none tracking-widest">4 ELEMENTS</h2>
+                        <span class="text-[8px] text-accent font-bold uppercase tracking-[0.2em] block mt-1">Medical Center</span>
                     </div>
                 </div>
-            </section>
-
-            <section class="space-y-6">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-wellness-accent/10 flex items-center justify-center text-wellness-accent">
-                        <i class="fa-solid fa-scale-balanced"></i>
+                    <button onclick="location.reload()" class="hidden md:flex items-center gap-2 text-xs font-bold text-text-brand/50 hover:text-primary uppercase tracking-widest transition-colors">
+                        <span class="material-symbols-outlined text-sm">logout</span> Salir
+                    </button>
+                    <div class="size-10 rounded-full bg-[#ece6dd] border border-primary/20 flex items-center justify-center text-primary/50">
+                         <span class="material-symbols-outlined">person</span>
                     </div>
-                    <h3 class="font-serif text-2xl text-wellness-dark">Tus Reglas de Oro</h3>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 pb-20 w-full max-w-4xl mx-auto px-6 lg:px-0 mt-8 font-body text-[#412814]">
+            
+            <section class="mb-12 text-center md:text-left">
+                <p class="text-accent font-bold text-xs uppercase tracking-[0.2em] mb-2">Tu espacio personal</p>
+                <h1 class="font-serif text-4xl md:text-5xl text-primary mb-4">
+                    Hola, <span id="user-name">...</span>
+                </h1>
+                <p class="opacity-70 text-lg font-light max-w-2xl leading-relaxed">
+                    "El equilibrio no es algo que encuentras, es algo que creas." <br>
+                    Aquí tienes tu nueva planificación para continuar tu camino hacia el bienestar.
+                </p>
+            </section>
+
+            <section class="mb-12 shadow-xl rounded-xl overflow-hidden bg-white border border-white">
+                <div class="flex flex-col md:flex-row">
+                    <div class="w-full md:w-1/3 bg-primary/10 flex flex-col items-center justify-center p-8 text-primary border-r border-primary/5">
+                         <span class="material-symbols-outlined text-6xl mb-2">nutrition</span>
+                         <span class="text-xs font-bold uppercase tracking-widest opacity-60">Plan Activo</span>
+                    </div>
+                    
+                    <div class="w-full md:w-2/3 p-8 md:p-10 flex flex-col justify-center">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="size-2 rounded-full bg-accent animate-pulse"></span>
+                            <span id="active-date" class="text-[10px] font-bold uppercase tracking-widest opacity-50">...</span>
+                        </div>
+                        
+                        <h3 class="font-serif text-3xl text-primary mb-2" id="active-title">Cargando...</h3>
+                        <p class="opacity-70 text-sm mb-8 font-light">
+                            Diseñado por la Dra. Macías y su equipo para tu momento actual.
+                        </p>
+
+                        <a id="active-pdf" href="#" target="_blank" class="w-full md:w-auto text-center bg-primary hover:bg-[#367270] text-white py-4 px-8 rounded-lg text-xs font-bold uppercase tracking-[0.2em] shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-sm">download</span> Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-16">
+                <div class="flex items-center gap-4 mb-8">
+                    <span class="material-symbols-outlined text-accent text-3xl">verified</span>
+                    <h2 class="font-serif text-2xl">Pautas Maestras</h2>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div class="bg-white p-6 rounded-[1.5rem] border-l-4 border-wellness-primary shadow-sm">
-                        <h4 class="font-bold text-wellness-primary text-xs uppercase tracking-widest mb-4">Tu Base (Sí)</h4>
-                        <ul class="space-y-3 text-sm opacity-80">
-                            <li class="flex gap-3"><i class="fa-solid fa-check text-wellness-primary"></i> <span><strong>Proteínas ilimitadas:</strong> Carnes, pescado, huevo, sepia, pulpo.</span></li>
-                            <li class="flex gap-3"><i class="fa-solid fa-check text-wellness-primary"></i> <span><strong>Guarnición:</strong> 1/4 del plato (ensalada, verdura, setas).</span></li>
-                            <li class="flex gap-3"><i class="fa-solid fa-check text-wellness-primary"></i> <span><strong>Cocción:</strong> Plancha, vapor, horno (sin rebozados).</span></li>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-8 rounded-xl border-l-4 border-primary shadow-sm">
+                        <h4 class="font-bold text-primary text-xs uppercase tracking-widest mb-6">La Base (Tierra ⛰️)</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                <p class="opacity-70 text-sm"><strong>Proteínas ilimitadas:</strong> Carne, pescado, huevo, sepia (cocción plancha/vapor).</p>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                <p class="opacity-70 text-sm"><strong>Guarnición:</strong> 1/4 del plato (ensalada, verduras, setas).</p>
+                            </li>
                         </ul>
                     </div>
                     
-                    <div class="bg-white p-6 rounded-[1.5rem] border-l-4 border-wellness-accent shadow-sm">
-                        <h4 class="font-bold text-wellness-accent text-xs uppercase tracking-widest mb-4">A Evitar (No)</h4>
-                        <ul class="space-y-3 text-sm opacity-80">
-                            <li class="flex gap-3"><i class="fa-solid fa-xmark text-wellness-accent"></i> <span>Azúcar, bollería y pastelería.</span></li>
-                            <li class="flex gap-3"><i class="fa-solid fa-xmark text-wellness-accent"></i> <span>Refrescos (sí a sacarina/light).</span></li>
-                            <li class="flex gap-3"><i class="fa-solid fa-xmark text-wellness-accent"></i> <span>Alcohol.</span></li>
-                            <li class="flex gap-3"><i class="fa-solid fa-circle-exclamation text-wellness-accent"></i> <span><strong>Fruta:</strong> Solo 1 ración al día.</span></li>
+                    <div class="bg-white p-8 rounded-xl border-l-4 border-accent shadow-sm">
+                        <h4 class="font-bold text-accent text-xs uppercase tracking-widest mb-6">A Evitar (Fuego 🔥)</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <span class="material-symbols-outlined text-accent text-sm mt-0.5">cancel</span>
+                                <p class="opacity-70 text-sm">Azúcar, bollería, refrescos (excepto light/sacarina).</p>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="material-symbols-outlined text-accent text-sm mt-0.5">info</span>
+                                <p class="opacity-70 text-sm"><strong>Fruta:</strong> Máximo 1 ración al día.</p>
+                            </li>
                         </ul>
                     </div>
                 </div>
             </section>
 
-            <section class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-wellness-primary/10 flex items-center justify-center text-wellness-primary">
-                            <i class="fa-solid fa-bag-shopping"></i>
-                        </div>
-                        <h3 class="font-serif text-2xl text-wellness-dark">Farmacia 4 Elements</h3>
-                    </div>
+            <section class="mb-20">
+                <div class="flex items-center justify-between mb-8 border-b border-primary/10 pb-4">
+                    <h2 class="font-serif text-2xl">Farmacia & Suplementación</h2>
+                    <span class="text-[10px] opacity-40 uppercase tracking-widest hidden md:block">Solicitar a Dra. Macías</span>
                 </div>
-
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <div class="product-card bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col justify-between">
-                        <div>
-                            <h4 class="font-serif text-lg text-wellness-dark mb-2">Método PronoKal®</h4>
-                            <p class="text-xs text-gray-500 mb-4">Tratamiento médico bajo supervisión. Reposición de productos.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/20 group">
+                        <div class="h-12 w-12 bg-[#ece6dd] rounded-full flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined">medical_services</span>
                         </div>
-                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, me gustaría recibir información para iniciar o reponer productos del Método PronoKal." target="_blank" 
-                           class="w-full py-3 rounded-full border border-wellness-primary text-wellness-primary text-[10px] font-bold uppercase tracking-widest hover:bg-wellness-primary hover:text-white transition-colors text-center block">
-                           Contactar Doctora
+                        <h4 class="font-serif text-lg text-primary mb-2">Método PronoKal®</h4>
+                        <p class="text-xs opacity-60 mb-6 min-h-[40px]">Reposición de productos bajo supervisión médica.</p>
+                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, necesito reponer productos PronoKal." target="_blank" class="block w-full text-center border border-primary text-primary py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                            Solicitar
                         </a>
                     </div>
 
-                    <div class="product-card bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col justify-between">
-                        <div>
-                            <h4 class="font-serif text-lg text-wellness-dark mb-2">Suplementación</h4>
-                            <p class="text-xs text-gray-500 mb-4">Vitaminas, Omega 3 y Drenantes específicos para tu plan.</p>
+                    <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/20 group">
+                        <div class="h-12 w-12 bg-[#ece6dd] rounded-full flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined">medication</span>
                         </div>
-                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, necesito reponer mi pauta de micronutrición / suplementos." target="_blank" 
-                           class="w-full py-3 rounded-full border border-wellness-primary text-wellness-primary text-[10px] font-bold uppercase tracking-widest hover:bg-wellness-primary hover:text-white transition-colors text-center block">
-                           Pedir Reposición
+                        <h4 class="font-serif text-lg text-primary mb-2">Micronutrición</h4>
+                        <p class="text-xs opacity-60 mb-6 min-h-[40px]">Vitaminas, Omega 3 y drenantes específicos.</p>
+                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, quiero reponer mis suplementos." target="_blank" class="block w-full text-center border border-primary text-primary py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                            Reponer
                         </a>
                     </div>
-                    
-                    <div class="product-card bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 sm:col-span-2 flex flex-col sm:flex-row items-center gap-6">
-                        <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-orange-400 shrink-0">
-                            <i class="fa-solid fa-box-open"></i>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent hover:border-primary/20 group">
+                        <div class="h-12 w-12 bg-[#ece6dd] rounded-full flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined">inventory_2</span>
                         </div>
-                        <div class="flex-1 text-center sm:text-left">
-                            <h4 class="font-serif text-lg text-wellness-dark">Stock en Clínica</h4>
-                            <p class="text-xs text-gray-500 mt-1">Consulta los snacks y batidos disponibles para recogida inmediata.</p>
-                        </div>
-                        <a href="https://wa.me/34674201432?text=Hola Dra. Macías, ¿qué snacks proteicos tenéis disponibles actualmente en stock?" target="_blank" 
-                           class="px-6 py-3 rounded-full bg-wellness-accent text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#8f6d65] transition-colors shadow-lg">
-                           Consultar Stock
+                        <h4 class="font-serif text-lg text-primary mb-2">Stock en Clínica</h4>
+                        <p class="text-xs opacity-60 mb-6 min-h-[40px]">Snacks proteicos y batidos listos para llevar.</p>
+                        <a href="https://wa.me/34674201432?text=Hola, ¿qué snacks tenéis disponibles en clínica?" target="_blank" class="block w-full text-center border border-primary text-primary py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                            Consultar
                         </a>
                     </div>
                 </div>
             </section>
+
+            <footer class="border-t border-primary/10 py-10 flex flex-col md:flex-row justify-between items-center gap-6 opacity-60">
+                <div class="text-center md:text-left">
+                    <p class="text-sm font-bold text-primary">4 Elements Wellness Medical Center</p>
+                    <p class="text-xs mt-1">Carrer de l’Ave Maria, 29, 17130 L’Escala, Girona</p>
+                </div>
+            </footer>
 
         </main>
     </div>
 
     <script>
-        // =================================================================
-        // HE CORREGIDO ESTA LÍNEA (AÑADIDAS LAS COMILLAS):
-        // =================================================================
-        const URL_EXCEL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtDe-3Hsg6FSo7SewPSgDvH5DpCOf9TF6rC4eisgrBoopjbLxSYLsX-lbWuAtlzTtadxzfsO-uic3k/pub?output=csv";
-        // =================================================================
+        // -------------------------------------------------------------
+        // 👇 PEGA AQUÍ TU ENLACE CSV DE GOOGLE SHEETS 👇
+        // -------------------------------------------------------------
+        const URL_EXCEL = https://docs.google.com/spreadsheets/d/e/2PACX-1vTtDe-3Hsg6FSo7SewPSgDvH5DpCOf9TF6rC4eisgrBoopjbLxSYLsX-lbWuAtlzTtadxzfsO-uic3k/pubhtml;
+        // -------------------------------------------------------------
 
         function verificarCodigo() {
             const inputCode = document.getElementById('pass-input').value.trim().toUpperCase();
@@ -196,6 +319,7 @@
             const loading = document.getElementById('loading');
             const errorMsg = document.getElementById('error-msg');
 
+            // UI: Mostrar carga
             btn.classList.add('opacity-50', 'pointer-events-none');
             loading.classList.remove('hidden');
             errorMsg.classList.add('hidden');
@@ -205,46 +329,60 @@
                 header: true,
                 complete: function(results) {
                     const datos = results.data;
-                    // Buscamos todas las coincidencias
                     const historialPaciente = datos.filter(row => 
                         row.CODIGO && row.CODIGO.trim().toUpperCase() === inputCode
                     );
 
                     if (historialPaciente.length > 0) {
-                        // Cogemos SIEMPRE la última fila que hayas añadido (la más nueva)
                         const ultimoPlan = historialPaciente[historialPaciente.length - 1];
                         renderizarPaciente(ultimoPlan);
                     } else {
+                        // Código erróneo
                         loading.classList.add('hidden');
                         btn.classList.remove('opacity-50', 'pointer-events-none');
                         errorMsg.classList.remove('hidden');
+                        // Resetear input visualmente
+                        document.getElementById('pass-input').classList.add('border-red-500');
                     }
                 },
                 error: function() {
                     loading.classList.add('hidden');
-                    errorMsg.innerText = "Error de conexión";
+                    errorMsg.innerText = "Error de conexión. Inténtalo de nuevo.";
                     errorMsg.classList.remove('hidden');
+                    btn.classList.remove('opacity-50', 'pointer-events-none');
                 }
             });
         }
 
         function renderizarPaciente(data) {
-            // Rellenar datos
             document.getElementById('user-name').innerText = data.NOMBRE;
             document.getElementById('active-title').innerText = data.TITULO;
             document.getElementById('active-date').innerText = data.FECHA;
             document.getElementById('active-pdf').href = data.PDF;
 
-            // Abrir puerta
-            document.getElementById('login-screen').style.opacity = '0';
+            const loginScreen = document.getElementById('login-screen');
+            const appContent = document.getElementById('app-content');
+            
+            // Animación de salida del login
+            loginScreen.style.transition = "opacity 0.8s ease";
+            loginScreen.style.opacity = '0';
+            
             setTimeout(() => {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-            }, 500);
+                loginScreen.classList.add('hidden-content'); // Quitar login del DOM flow
+                appContent.classList.remove('hidden-content'); // Mostrar app
+                appContent.classList.add('fade-in'); // Animar entrada
+            }, 800);
         }
 
+        // Permitir Enter
         document.getElementById("pass-input").addEventListener("keypress", function(e) {
             if (e.key === "Enter") verificarCodigo();
+        });
+        
+        // Quitar borde rojo al escribir
+        document.getElementById("pass-input").addEventListener("input", function() {
+            this.classList.remove('border-red-500');
+            document.getElementById('error-msg').classList.add('hidden');
         });
     </script>
 </body>
